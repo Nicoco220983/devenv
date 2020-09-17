@@ -1,0 +1,4 @@
+#!/bin/bash -e
+while IFS= read -r line; do
+    echo "$line" | sed 's/ /\\ /g'
+done < <(cat) | xargs "$@"

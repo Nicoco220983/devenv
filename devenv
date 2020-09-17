@@ -1,0 +1,3 @@
+export PATH=$(dirname $BASH_SOURCE)/bin:$PATH
+
+alias svenv="source venv"

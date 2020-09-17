@@ -1,0 +1,84 @@
+#!/bin/bash -e
+
+main(){
+
+  _PIP_INSTALL_ARGS=()
+  for arg in $@; do
+    if [ "$arg" = "-u" ]; then
+      _PIP_INSTALL_ARGS+="--upgrade"
+      shift
+    fi
+  done
+
+  if [ -z "$1" ]; then
+    _INPUT=$PWD
+  elif [ -e "$1" ]; then
+    _INPUT=$(realpath "$1")
+  else
+    _INPUT=$(which "$1")
+  fi
+  [ -z "_INPUT" ] && ( >&2 echo "ERROR: Could not determine venv input from: $1") && exit 1
+
+  _REQ_FILE=$(find_req_file "$_INPUT")
+  _DIR=${_REQ_FILE%"/$(basename $_REQ_FILE)"}
+  _DIR=${_DIR#"$CL_ROOT/"}
+  _DIR=$(echo "$_DIR" | tr '/' '_')
+
+  if [ -z "$VENV_DIR" ]; then
+    _VENV_DIR=$_DIR/venv
+  else
+    _VENV_DIR=$VENV_DIR/$(basename "$_DIR")
+  fi
+
+  if [ -f "$_REQ_FILE" ]; then
+    init_venv
+  fi
+
+  if [ ! -z "$1" ] && [ ! -d "$1" ]; then
+    "$@"
+  fi
+
+  # as this script may be sourced
+  unset _PIP_INSTALL_ARGS
+  unset _INPUT
+  unset _DIR
+  unset _REQ_FILE
+  unset _VENV_DIR
+}
+
+find_req_file(){
+  if [ "$1" = "" ] || [ "$1" = "/" ]; then
+    return
+  fi
+  if [ -d "$1" ]; then
+    if [ -f "$1/requirements-dev.txt" ]; then
+      echo "$1/requirements-dev.txt"
+      return
+    elif [ -f "$1/requirements.txt" ]; then
+      echo "$1/requirements.txt"
+      return
+    fi
+  fi
+  find_req_file "$(dirname "$1")"
+}
+
+init_venv(){
+  if [ "$(which deactivate)" ]; then deactivate; fi
+  if [ ! -d "$_VENV_DIR" ] || [ ${#_PIP_INSTALL_ARGS[@]} -gt 0 ]; then
+    _PIP_INSTALL_ARGS+=("-r" "$_REQ_FILE")
+  fi
+  if [ ! -z "$_PIP_INSTALL_ARGS" ]; then
+    mkdir -p "$_VENV_DIR"
+    python -m venv "$_VENV_DIR"
+  fi
+  source "$_VENV_DIR/bin/activate"
+  if [ ! -z "$_PIP_INSTALL_ARGS" ]; then
+    pip install ${_PIP_INSTALL_ARGS[@]}
+  fi
+}
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+main "$@"

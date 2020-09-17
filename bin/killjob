@@ -1,0 +1,13 @@
+#!/bin/bash -e
+set -m
+if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo "Usage: $(basename $0) FILTER [KILL_ARGS]"
+  exit 0
+fi
+jobs=$(ps -xo "ppid,pid,args" | grep -v killjob)
+jobs=$(echo "$jobs" | awk '{if($1 == "'$PPID'"){ $1=""; print $0}}')
+jobs=$(echo "$jobs" | grep "$1" || true)
+[ "$(echo "$jobs" | wc -c)" -le 1 ] && >&2 echo "ERROR: No job selected" && exit 1
+[ "$(echo "$jobs" | wc -l)" -gt 1 ] && >&2 echo "ERROR: Several jobs selected" && >&2 echo "$jobs" && exit 1
+pid=$(echo "$jobs" | awk '{print $1}')
+kill "$pid" "${@:2}"
