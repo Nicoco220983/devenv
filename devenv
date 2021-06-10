@@ -1,3 +1,3 @@
 export PATH=$(dirname $BASH_SOURCE)/bin:$PATH
 
-alias svenv="source venv"
+export PYTHONSTARTUP="$(dirname $BASH_SOURCE)/py/_py_startup.py"
