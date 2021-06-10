@@ -1,13 +1,6 @@
 #!/bin/bash -e
-
-FIND_ARGS=()
-if [ ! -z "$1" ]; then
-    FIND_ARGS+=("-ipath" "*$1*")
+res=$(git ls-tree --full-tree -r --name-only HEAD)
+if [ "$1" ]; then
+    res=$(echo "$res" | grep "$1")
 fi
-if [ "$FF_EXCLUDE" ]; then
-    IFS=':' read -a FF_EXCLUDE <<< "$FF_EXCLUDE"
-    for exc in "${FF_EXCLUDE[@]}"; do
-        FIND_ARGS+=("-not" "-path" "$exc")
-    done
-fi
-find . -type f "${FIND_ARGS[@]}"
+echo "$res"

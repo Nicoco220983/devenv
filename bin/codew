@@ -1,0 +1,2 @@
+#!/bin/bash -e
+code $(which "$1")
