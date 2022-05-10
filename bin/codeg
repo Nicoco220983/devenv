@@ -1,2 +1,2 @@
 #!/bin/bash -e
-code $(gg "$@")
+code $(gg -l "$@" | head -n1)
