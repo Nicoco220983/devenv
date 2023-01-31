@@ -1,3 +1,5 @@
 export PATH=$(dirname $BASH_SOURCE)/bin:$PATH
 
 export PYTHONSTARTUP="$(dirname $BASH_SOURCE)/py/_py_startup.py"
+
+alias sshpi="ssh nico@192.168.1.64"
